@@ -48,6 +48,7 @@ Sub Main()
     sheet.Cells(1, 7).Value = "Part 2"
     sheet.Cells(1, 8).Value = "Material 2"
     sheet.Cells(1, 9).Value = "Joint Length (in.)"
+    sheet.Cells(1, 10).Value = "Welded Joint Length (in.)"
 
     ' ==========================================================
     ' ✅ Debug headers
@@ -179,7 +180,8 @@ Sub Main()
                     occ2.CreateGeometryProxy(face2, proxy2Final)
 
                     Dim centroid As Point = GetContactCentroid(face1, face2)
-                    Dim longestDim As Double = GetJointLength(face1, face2) / 2.54   ' Convert from cm to inches
+                    Dim jointLength As Double = GetJointLength(face1, face2) / 2.54   ' Convert from cm to inches
+                    Dim weldedJointLength As Double = GetWeldedJointLength(face1, face2) / 2.54   ' Convert from cm to inches
 
                     ' Create work point
                     Dim workPt As WorkPoint = compDef.WorkPoints.AddFixed(centroid)
@@ -191,7 +193,7 @@ Sub Main()
                     jointRows.Add(New Object() { _
                         jointID, _
                         Round(centroid.X, 4), Round(centroid.Y, 4), Round(centroid.Z, 4), _
-                        part1Name, mat1, part2Name, mat2, Round(longestDim, 4)})
+                        part1Name, mat1, part2Name, mat2, Round(jointLength, 4), Round(weldedJointLength, 4)})
 
                     jointID += 1
 
@@ -905,4 +907,61 @@ Function GetMaxDistancePoints(poly As List(Of Double())) As Tuple(Of Double(), D
     Next
 
     Return Tuple.Create(bestP, bestQ, maxDist)
+End Function
+
+Function GetWeldedJointLength(face1 As Face, face2 As Face) As Double
+
+    Dim tg As TransientGeometry = ThisApplication.TransientGeometry
+
+    If face1.SurfaceType <> SurfaceTypeEnum.kPlaneSurface Or _
+       face2.SurfaceType <> SurfaceTypeEnum.kPlaneSurface Then
+        MessageBox.Show("Both faces must be planar.")
+        Exit Function
+    End If
+
+    Dim obb1 As FaceOBB = BuildFaceOBB(face1, tg)
+    Dim obb2 As FaceOBB = BuildFaceOBB(face2, tg)
+
+    If obb1 Is Nothing Or obb2 Is Nothing Then
+        MessageBox.Show("Could not build OBB for one or both faces.")
+        Exit Function
+    End If
+
+    ' Convert to 2D (project face2 into face1 plane)
+    Dim poly1 As List(Of Double()) = To2D(obb1.corners, obb1, False, tg)
+    Dim poly2 As List(Of Double()) = To2D(obb2.corners, obb1, True, tg)
+
+    EnsureCCW(poly1)
+    EnsureCCW(poly2)
+
+    ' Intersection polygon
+    Dim clipped As List(Of Double()) = ClipPolygon(poly1, poly2)
+
+    ' ---- NEW PART: perimeter instead of max distance ----
+    Dim perimeter As Double = GetPolygonPerimeter(clipped)
+
+    Return perimeter
+
+End Function
+
+Function GetPolygonPerimeter(poly As List(Of Double())) As Double
+
+    If poly Is Nothing Or poly.Count < 2 Then Return 0
+
+    Dim perimeter As Double = 0.0
+
+    For i As Integer = 0 To poly.Count - 1
+
+        Dim p1 As Double() = poly(i)
+        Dim p2 As Double() = poly((i + 1) Mod poly.Count)
+
+        Dim dx As Double = p2(0) - p1(0)
+        Dim dy As Double = p2(1) - p1(1)
+
+        perimeter += Math.Sqrt(dx * dx + dy * dy)
+
+    Next
+
+    Return perimeter
+
 End Function

@@ -46,7 +46,7 @@ Sub Main()
     excelApp.ScreenUpdating = False
 
     Dim workbook As Object = excelApp.Workbooks.Open(outputPath)
-    Dim sheet As Object = workbook.Sheets("BAC Part List")
+    Dim sheetBACPartList As Object = workbook.Sheets("BAC Part List")
 
     ' ===== INVENTOR SETUP =====
     Dim asmDoc As AssemblyDocument = CType(ThisApplication.ActiveDocument, AssemblyDocument)
@@ -129,19 +129,18 @@ Sub Main()
                 Dim costDataAssemblyCategory As String = GetCustomiProp(oPartDoc, "CostDataAssemblyCategory")
 
                 ' --- Use values ---
-                sheet.Cells(row, PART_SET).Value = oAsmDoc.DisplayName
-                sheet.Cells(row, PART_IDENTIFIER).Value = partIdentifier
-                ' sheet.Cells(row, PART_QUANTITY).Value = partQuantity
+                sheetBACPartList.Cells(row, PART_SET).Value = oAsmDoc.DisplayName
+                sheetBACPartList.Cells(row, PART_IDENTIFIER).Value = partIdentifier
 
-                sheet.Cells(row, NCX_MATERIAL).Value = ncxMaterial
-                sheet.Cells(row, GAUGE).Value = TryParseDoubleSafe(gaugeValue)
-                sheet.Cells(row, COST_DATA_PIERCE_COUNT).Value = TryParseDoubleSafe(costDataPierceCount)
-                sheet.Cells(row, COST_DATA_CUT_DISTANCE_INCHES).Value = TryParseDoubleSafe(costDataCutDistanceInches)
-                sheet.Cells(row, COST_DATA_UNIQUE_BENDS).Value = TryParseDoubleSafe(costDataUniqueBends)
-                sheet.Cells(row, CORNER_WELD).Value = TryParseDoubleSafe(cornerWeld)
-                sheet.Cells(row, COST_DATA_FLAT_LENGTH_INCHES).Value = TryParseDoubleSafe(costDataFlatLengthInches)
-                sheet.Cells(row, COST_DATA_FLAT_WIDTH_INCHES).Value = TryParseDoubleSafe(costDataFlatWidthInches)
-                sheet.Cells(row, COST_DATA_ASSEMBLY_CATEGORY).Value = costDataAssemblyCategory
+                sheetBACPartList.Cells(row, NCX_MATERIAL).Value = ncxMaterial
+                sheetBACPartList.Cells(row, GAUGE).Value = TryParseDoubleSafe(gaugeValue)
+                sheetBACPartList.Cells(row, COST_DATA_PIERCE_COUNT).Value = TryParseDoubleSafe(costDataPierceCount)
+                sheetBACPartList.Cells(row, COST_DATA_CUT_DISTANCE_INCHES).Value = TryParseDoubleSafe(costDataCutDistanceInches)
+                sheetBACPartList.Cells(row, COST_DATA_UNIQUE_BENDS).Value = TryParseDoubleSafe(costDataUniqueBends)
+                sheetBACPartList.Cells(row, CORNER_WELD).Value = TryParseDoubleSafe(cornerWeld)
+                sheetBACPartList.Cells(row, COST_DATA_FLAT_LENGTH_INCHES).Value = TryParseDoubleSafe(costDataFlatLengthInches)
+                sheetBACPartList.Cells(row, COST_DATA_FLAT_WIDTH_INCHES).Value = TryParseDoubleSafe(costDataFlatWidthInches)
+                sheetBACPartList.Cells(row, COST_DATA_ASSEMBLY_CATEGORY).Value = costDataAssemblyCategory
 
                 row += 1
             End If
@@ -151,14 +150,14 @@ Sub Main()
     Dim quantityRow As Integer = 4
     Dim partName As String
     For Each partName In partOrder
-        sheet.Cells(quantityRow, PART_QUANTITY).Value = partCounts(partName)
+        sheetBACPartList.Cells(quantityRow, PART_QUANTITY).Value = partCounts(partName)
         quantityRow += 1
     Next partName
     
-    sheet = workbook.Sheets("Summary")
-    sheet.Cells(2, 1).Value = oAsmDoc.DisplayName
+    sheetSummary = workbook.Sheets("Summary")
+    sheetSummary.Cells(2, 1).Value = oAsmDoc.DisplayName
 
-    sheet = workbook.Sheets("Joints List")
+    sheetJointsList = workbook.Sheets("Joints List")
 
     Dim jointOutputWorkbook As Object = excelApp.Workbooks.Open(jointDetectorPath)
     Dim jointsSheet As Object = jointOutputWorkbook.Sheets("Joints")
@@ -167,7 +166,7 @@ Sub Main()
     Dim jointsSheetRow As Integer = 1
     Const MEMBER1 As Integer = 5
     Const MEMBER2 As Integer = 7 
-    CONST JOINT_DISTANCE As Integer = 9
+    Const JOINT_DISTANCE As Integer = 9
 
     Dim reachedLastRow As Boolean = False
     While Not reachedLastRow
