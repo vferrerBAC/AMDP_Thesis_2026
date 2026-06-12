@@ -9,7 +9,7 @@ Sub Main()
     Dim templatePath As String = "C:\Users\SRosario\OneDrive - BAC\Documents\GitHub\AMDP_Thesis_2026\CostEstimation\cost_calculator - Clean - 12FEB26.xlsx"
 
     ' Prompt user for JointDetector output file path
-    Dim jointDetectorPath As String = InputBox("Enter the file path to the JointDetector output Excel sheet:", "Joint Detector File Path")
+    Dim jointDetectorPath As String = InputBox("Enter the file path to the JointDetector output Excel sheet (MAKE SURE TO DELETE ANY QUOTES AT THE BEGINNING AND END OF FILE PATH):", "Joint Detector File Path")
     If jointDetectorPath = "" Then
         MsgBox("No file path provided. Exiting.", vbExclamation)
         Exit Sub
@@ -56,6 +56,8 @@ Sub Main()
     Dim row As Integer = 4
 
     Dim processed As New System.Collections.Generic.HashSet(Of String)
+    Dim partCounts As New Dictionary(Of String, Integer)
+    Dim partOrder As New List(Of String)
 
     ' ==== Assembly Setup ====
 
@@ -89,6 +91,11 @@ Sub Main()
             Dim oCheckedDoc As Document
             For Each oCheckedDoc In oProcessedDocs
                 If oCheckedDoc.FullDocumentName = oPartDoc.FullDocumentName Then
+                    Dim oDesignTrackingProps As PropertySet = oPartDoc.PropertySets.Item("Design Tracking Properties")
+                    Dim partIdentifier As String = oDesignTrackingProps.Item("Part Number").Value
+                    If partCounts.ContainsKey(partIdentifier) Then
+                        partCounts(partIdentifier) += 1
+                    End If
                     bAlreadyProcessed = True
                     Exit For
                 End If
@@ -104,6 +111,12 @@ Sub Main()
 
                 ' Get the Part Number property
                 Dim partIdentifier As String = oDesignTrackingProps.Item("Part Number").Value
+
+                If Not partCounts.ContainsKey(partIdentifier) Then
+                    partCounts.Add(partIdentifier, 0)
+                    partOrder.Add(partIdentifier)
+                End If
+                partCounts(partIdentifier) += 1
 
                 Dim ncxMaterial As String = GetCustomiProp(oPartDoc, "NCx_Material")
                 Dim gaugeValue As String = GetCustomiProp(oPartDoc, "Gauge")
@@ -134,6 +147,13 @@ Sub Main()
             End If
         End If
     Next
+
+    Dim quantityRow As Integer = 4
+    Dim partName As String
+    For Each partName In partOrder
+        sheet.Cells(quantityRow, PART_QUANTITY).Value = partCounts(partName)
+        quantityRow += 1
+    Next partName
     
     sheet = workbook.Sheets("Summary")
     sheet.Cells(2, 1).Value = oAsmDoc.DisplayName
