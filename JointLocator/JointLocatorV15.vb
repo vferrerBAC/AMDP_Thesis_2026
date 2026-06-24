@@ -257,15 +257,97 @@ Sub Main()
                         boltedSheet.Cells(boltedRow, 1).Value = jointID
                         boltedSheet.Cells(boltedRow, 2).Value = matMapped
                         boltedSheet.Cells(boltedRow, 3).Value = gaugeVal
+                        boltedSheet.Cells(boltedRow, 4).Value = 2
+                        boltedSheet.Cells(boltedRow, 5).Value = "ASTM A307, Grade A"
+                        boltedSheet.Cells(boltedRow, 6).Value = 0.3125
+                        boltedSheet.Cells(boltedRow, 7).Value = 1.5
 
                         boltedRow += 1
 
                     ElseIf connectionType = "Welded" Then
 
-                        ' Future
+                        ' -----------------------------
+                        ' ✅ Get bounding box dimensions
+                        ' -----------------------------
+                        Dim dims1() As Double = GetBoundingBoxDims(occ1)
+                        Dim dims2() As Double = GetBoundingBoxDims(occ2)
+
+                        Dim width1 As Double = dims1(0)
+                        Dim height1 As Double = dims1(1)
+
+                        Dim width2 As Double = dims2(0)
+                        Dim height2 As Double = dims2(1)
+
+                        ' -----------------------------
+                        ' ✅ Determine branch vs chord
+                        ' -----------------------------
+                        Dim area1 As Double = width1 * height1
+                        Dim area2 As Double = width2 * height2
+
+                        Dim branchOcc As ComponentOccurrence
+                        Dim chordOcc As ComponentOccurrence
+
+                        Dim branchWidth As Double
+                        Dim branchHeight As Double
+
+                        If area1 <= area2 Then
+                            branchOcc = occ1
+                            chordOcc = occ2
+
+                            branchWidth = width1
+                            branchHeight = height1
+                        Else
+                            branchOcc = occ2
+                            chordOcc = occ1
+
+                            branchWidth = width2
+                            branchHeight = height2
+                        End If
+
+                        ' -----------------------------
+                        ' ✅ Branch properties
+                        ' -----------------------------
+                        Dim branchName As String = branchOcc.Name
+
+                        Dim branchMatRaw As String = GetCustomiProperty(branchOcc, "NCx_Material")
+                        Dim branchMat As String = MapWeldedMaterial(branchMatRaw)
+
+                        Dim branchGauge As Double = GetGaugeValue(branchOcc)
+
+                        ' -----------------------------
+                        ' ✅ Chord properties
+                        ' -----------------------------
+                        Dim chordName As String = chordOcc.Name
+
+                        Dim chordMatRaw As String = GetCustomiProperty(chordOcc, "NCx_Material")
+                        Dim chordMat As String = MapWeldedMaterial(chordMatRaw)
+
+                        Dim chordGauge As Double = GetGaugeValue(chordOcc)
+
+                        ' -----------------------------
+                        ' ✅ WRITE TO EXCEL (EDIT HERE FOR COLUMN MAPPING)
+                        ' -----------------------------
+
+                        ' Column 1 → Joint ID
+                        weldedSheet.Cells(weldedRow, 1).Value = jointID
+
+                        ' Branch
+                        weldedSheet.Cells(weldedRow, 2).Value = branchName
+                        weldedSheet.Cells(weldedRow, 3).Value = branchMat
+                        weldedSheet.Cells(weldedRow, 4).Value = branchGauge
+                        weldedSheet.Cells(weldedRow, 6).Value = Round(branchWidth, 3)
+                        weldedSheet.Cells(weldedRow, 7).Value = Round(branchHeight, 3)
+
+                        ' Chord
+                        weldedSheet.Cells(weldedRow, 8).Value = chordName
+                        weldedSheet.Cells(weldedRow, 9).Value = chordMat
+                        weldedSheet.Cells(weldedRow, 10).Value = chordGauge
+                        weldedSheet.Cells(weldedRow, 12).Value = "E70XX"
+
                         weldedRow += 1
 
                     End If
+
 
                     
                     jointRows.Add(New Object() { _
@@ -1139,6 +1221,17 @@ Function MapMaterial(ncxMat As String) As String
 
 End Function
 
+Function MapWeldedMaterial(ncxMat As String) As String
+
+    If ncxMat = "GLV-M5" Then
+        Return "Carbon Steel Tube"
+    Else
+        Return ncxMat
+    End If
+
+End Function
+
+
 Function GetBoundingBoxDims(occ As ComponentOccurrence) As Double()
 
     Dim box As Box = occ.RangeBox
@@ -1147,13 +1240,11 @@ Function GetBoundingBoxDims(occ As ComponentOccurrence) As Double()
     Dim dy As Double = Math.Abs(box.MaxPoint.Y - box.MinPoint.Y) / 2.54
     Dim dz As Double = Math.Abs(box.MaxPoint.Z - box.MinPoint.Z) / 2.54
 
-    ' Sort to get width/height (ignore smallest thickness)
+    ' Sort dimensions
     Dim dims As New List(Of Double) From {dx, dy, dz}
     dims.Sort()
 
-    ' dims(2) = largest, dims(1) = second largest
-    ' treat these as width/height
-    Return New Double() {dims(2), dims(1)}   ' [Width, Height]
+    ' ✅ Return smallest two dimensions
+    Return New Double() {dims(0), dims(1)}
 
 End Function
-
