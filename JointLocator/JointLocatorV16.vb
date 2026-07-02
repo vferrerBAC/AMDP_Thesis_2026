@@ -683,7 +683,7 @@ Function GetContactCentroid(face1 As Face, face2 As Face) As Point
     Dim centroid2D As Double() = ComputePolygonCentroid(clipped)
 
     If centroid2D IsNot Nothing Then
-        return LocalToWorld(obb1.origin, obb1.xAxis, obb1.yAxis, centroid2D(0), centroid2D(1), tg)
+        Return LocalToWorld(obb1.origin, obb1.xAxis, obb1.yAxis, centroid2D(0), centroid2D(1), tg)
     End If
 
 End Function
@@ -709,8 +709,8 @@ Function BuildFaceOBB(f As Face, tg As TransientGeometry) As FaceOBB
     Dim longestEdge As Edge = Nothing
     Dim maxLen As Double = 0
     For Each e As Edge In f.Edges
-        Dim L As Double = e.StartVertex.Point.DistanceTo(e.StopVertex.Point)
-        If L > maxLen Then maxLen = L : longestEdge = e
+        Dim L As Double = E.StartVertex.Point.DistanceTo(E.StopVertex.Point)
+        If L > maxLen Then maxLen = L : longestEdge = E
     Next
     If longestEdge Is Nothing Then Return Nothing
 
@@ -944,7 +944,7 @@ Sub SampleFacePoints(proxy As FaceProxy, origin As Point, _
                      pts As List(Of Double()))
 
     Dim eval As SurfaceEvaluator = proxy.Evaluator
-    Dim rect As Box2D = eval.ParamRangeRect
+    Dim rect As Box2d = eval.ParamRangeRect
 
     Dim uMin As Double = rect.MinPoint.X
     Dim uMax As Double = rect.MaxPoint.X
@@ -1051,7 +1051,7 @@ Function GetJointLength(face1 As Face, face2 As Face) As Double
     ' End If
 
     ' MessageBox.Show("Max overlap span = " & maxDist/2.54 & " in.")
-    return maxDist
+    Return maxDist
 End Function
 
 Function GetMaxDistanceInPolygon(poly As List(Of Double())) As Double
