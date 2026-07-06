@@ -1,0 +1,113 @@
+{
+  "project": "BAC sample joint geometry",
+  "units": "inch-lbf",
+  "joints": [
+    {
+      "joint_id": "J001",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    {
+      "joint_id": "J002",
+      "x": 36,
+      "y": 0,
+      "z": 0
+    },
+    {
+      "joint_id": "J003",
+      "x": 72,
+      "y": 0,
+      "z": 0
+    },
+    {
+      "joint_id": "J004",
+      "x": 0,
+      "y": 24,
+      "z": 0
+    },
+    {
+      "joint_id": "J005",
+      "x": 36,
+      "y": 24,
+      "z": 0
+    },
+    {
+      "joint_id": "J006",
+      "x": 72,
+      "y": 24,
+      "z": 0
+    },
+    {
+      "joint_id": "J007",
+      "x": 36,
+      "y": 48,
+      "z": 0
+    }
+  ],
+  "members": [
+    {
+      "member_id": "M001",
+      "start_joint": "J001",
+      "end_joint": "J002",
+      "section_type": "C-lipped",
+      "material": "GLV"
+    },
+    {
+      "member_id": "M002",
+      "start_joint": "J002",
+      "end_joint": "J003",
+      "section_type": "C-lipped",
+      "material": "GLV"
+    },
+    {
+      "member_id": "M003",
+      "start_joint": "J004",
+      "end_joint": "J005",
+      "section_type": "hat",
+      "material": "HDG"
+    },
+    {
+      "member_id": "M004",
+      "start_joint": "J005",
+      "end_joint": "J006",
+      "section_type": "hat",
+      "material": "HDG"
+    },
+    {
+      "member_id": "M005",
+      "start_joint": "J001",
+      "end_joint": "J004",
+      "section_type": "tube",
+      "material": "HDG"
+    },
+    {
+      "member_id": "M006",
+      "start_joint": "J002",
+      "end_joint": "J005",
+      "section_type": "tube",
+      "material": "HDG"
+    },
+    {
+      "member_id": "M007",
+      "start_joint": "J003",
+      "end_joint": "J006",
+      "section_type": "tube",
+      "material": "HDG"
+    },
+    {
+      "member_id": "M008",
+      "start_joint": "J005",
+      "end_joint": "J007",
+      "section_type": "Z-section",
+      "material": "GLV"
+    },
+    {
+      "member_id": "M009",
+      "start_joint": "J004",
+      "end_joint": "J007",
+      "section_type": "C-lipped",
+      "material": "GLV"
+    }
+  ]
+}
