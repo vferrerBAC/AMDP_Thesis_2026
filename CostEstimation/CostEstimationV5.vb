@@ -176,9 +176,13 @@ Sub Main()
         writeRange.Value = buffer
     End If
 
+    ShrinkListObject(sheetBACPartList, "PartsListTable", rowCount)
+
     ' ===== SUMMARY SHEET =====
     Dim sheetSummary As Object = workbook.Sheets("Summary")
     sheetSummary.Cells(2, 1).Value = oAsmDoc.DisplayName
+
+    ShrinkListObject(sheetSummary, "SummaryTable", 1)
 
     ' ===== JOINTS LIST (from JointDetector workbook) =====
     Dim sheetJointsList As Object = workbook.Sheets("Joints List")
@@ -241,8 +245,10 @@ Sub Main()
         sheetJointsList.Range(wTL, wBR).Value = wbuf
     End If
 
+    ShrinkListObject(sheetJointsList, "JointsListTable", jointRows.Count)
+
     ' ===== SAVE + CLEANUP =====
-    SetCalcWithRetry(excelApp, CInt(originalCalc))   ' restore, forces recalc
+    SetCalcWithRetry(excelApp, CInt(originalCalc))   ' restore, forces recalc   ' restore, forces recalc
     jointOutputWorkbook.Close(False)
     workbook.Save()
     workbook.Close()
@@ -502,6 +508,39 @@ Function TryParseDoubleSafe(input As String) As Double
         Return 1.0
     End If
 End Function
+
+' ---------------------------------------------------------------------
+'  Shrink a ListObject to exactly `neededDataRows` data rows and wipe
+'  any formulas/values in the rows that fall outside the new body.
+'  Called with Calculation = Manual so orphaned formulas cost nothing
+'  in the moment between resize and clear.
+' ---------------------------------------------------------------------
+Sub ShrinkListObject(sheet As Object, tableName As String, neededDataRows As Integer)
+    ' Excel requires >= 1 data row in a table. Guard against 0 or negative.
+    If neededDataRows < 1 Then neededDataRows = 1
+
+    Dim lo As Object = sheet.ListObjects(tableName)
+    Dim headerRow  As Integer = lo.HeaderRowRange.Row
+    Dim firstCol   As Integer = lo.HeaderRowRange.Column
+    Dim colCount   As Integer = lo.ListColumns.Count
+    Dim lastCol    As Integer = firstCol + colCount - 1
+
+    ' Table body ends at this absolute sheet row today.
+    Dim currentLastRow As Integer = lo.Range.Row + lo.Range.Rows.Count - 1
+    Dim newLastRow     As Integer = headerRow + neededDataRows
+
+    If newLastRow >= currentLastRow Then Exit Sub    ' nothing to shrink
+
+    ' Resize the table down. Structured-reference formulas outside the
+    ' new bounds become plain cells, then we clear them.
+    Dim newTL As Object = sheet.Cells(headerRow, firstCol)
+    Dim newBR As Object = sheet.Cells(newLastRow, lastCol)
+    lo.Resize(sheet.Range(newTL, newBR))
+
+    Dim clrTL As Object = sheet.Cells(newLastRow + 1, firstCol)
+    Dim clrBR As Object = sheet.Cells(currentLastRow, lastCol)
+    sheet.Range(clrTL, clrBR).ClearContents()
+End Sub
 
 Function GetCalcWithRetry(excelApp As Object) As Object
     For attempt As Integer = 1 To 10
