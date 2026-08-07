@@ -9,7 +9,7 @@ Sub Main()
     Dim asmDoc As AssemblyDocument = invApp.ActiveDocument
 
     If asmDoc Is Nothing Then
-        MsgBox("Please open an Assembly document", MsgBoxStyle.Exclamation)
+        ' MsgBox("Please open an Assembly document", MsgBoxStyle.Exclamation)
         Exit Sub
     End If
 
@@ -57,10 +57,11 @@ Sub Main()
     Dim templatePath As String = "C:\Users\SRosario\OneDrive - BAC\Documents\GitHub\AMDP_Thesis_2026\Capacity Analysis\Capacity Analysis Template.xlsx"
     Dim saveFolderCapFile As String = "C:\Users\SRosario\OneDrive - BAC\Desktop\Joint Catalog\StructuralAnalysis"
 
-    Dim capFileName As String = "CapacityOutput_" & Now.ToString("yyyyMMdd_HHmmss") & ".xlsx"
+    ' Dim capFileName As String = "CapacityOutput_" & Now.ToString("yyyyMMdd_HHmmss") & ".xlsx"
+    Dim capFileName As String = "CapacityOutput.xlsx"
     Dim capPath As String = System.IO.Path.Combine(saveFolderCapFile, capFileName)
 
-    ' Copy template → new file
+    ' Copy template → new file (overwrites existing output file, so contents are deleted/rewritten each run)
     System.IO.File.Copy(templatePath, capPath, True)
 
     ' Now open the COPY (not the original)
@@ -400,9 +401,12 @@ Sub Main()
     ' -----------------------------
     ' ✅ Save Joint File
     ' -----------------------------
-    Dim jointFileName As String = "Joints_" & Now.ToString("yyyyMMdd_HHmmss") & ".xlsx"
+    ' Dim jointFileName As String = "Joints_" & Now.ToString("yyyyMMdd_HHmmss") & ".xlsx"
+    Dim jointFileName As String = "Joints.xlsx"
     Dim jointPath As String = System.IO.Path.Combine(saveFolderJointFile, jointFileName)
 
+    ' SaveAs overwrites the existing file (DisplayAlerts = False suppresses the overwrite prompt),
+    ' so contents are deleted/rewritten each run instead of accumulating timestamped files
     jointWorkbook.SaveAs(jointPath)
     jointWorkbook.Close(False)
 
@@ -420,11 +424,11 @@ Sub Main()
     excelApp.Quit()
     excelApp = Nothing
 
-    MsgBox( _
-        "There are " & (jointID - 1) & " connections" & vbCrLf & vbCrLf & _
-        "Joint File: " & jointPath & vbCrLf & _
-        "Capacity File: " & capPath, _
-        MsgBoxStyle.Information)
+    ' MsgBox( _
+    '     "There are " & (jointID - 1) & " connections" & vbCrLf & vbCrLf & _
+    '     "Joint File: " & jointPath & vbCrLf & _
+    '     "Capacity File: " & capPath, _
+    '     MsgBoxStyle.Information)
 
 End Sub
 
